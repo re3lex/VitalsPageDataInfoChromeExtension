@@ -1,0 +1,51 @@
+body {
+  margin: 5px;
+  min-width:400px;
+  font-size: 15px;
+}
+
+
+table.dataTable {
+  border: 1px solid #1C6EA4;
+  background-color: #EEEEEE;
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+table.dataTable td, table.dataTable th {
+  border: 1px solid #AAAAAA;
+  padding: 3px 2px;
+}
+table.dataTable tbody td {
+  font-size: 13px;
+}
+table.dataTable tr:nth-child(even) {
+  background: #D0E4F5;
+}
+table.dataTable tr.profileTitle {
+  background: greenyellow;
+}
+table.dataTable tfoot td {
+  font-size: 14px;
+}
+table.dataTable tfoot .links {
+  text-align: right;
+}
+table.dataTable tfoot .links a{
+  display: inline-block;
+  background: #1C6EA4;
+  color: #FFFFFF;
+  padding: 2px 8px;
+  border-radius: 5px;
+}
+
+table td .value {
+  font-weight: 700;
+}
+
+a.copy-button {
+  font-size: 15px;
+  color: gray;
+  text-decoration: none;
+  vertical-align: bottom;
+}
