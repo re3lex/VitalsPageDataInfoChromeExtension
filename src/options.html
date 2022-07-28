@@ -9,9 +9,24 @@
     font-size: 16px;
   }
 
+  h3 {
+    margin-bottom: 26px;
+  }
+  h3.noBottomMargin {
+    margin-bottom: 0;
+  }
+
   .h-group {
     display: flex;
-    flex-direction: row;
+    flex-flow: row wrap;
+  }
+
+  .h-group>div {
+    margin-right: 5px;
+  }
+  h4.fileName {
+    margin-top: 0;
+    margin-bottom: 5px;
   }
 </style>
 
@@ -19,26 +34,28 @@
   <h1>You can modify set of fields retrieved on specific page</h1>
   <p>Provide profile data field names from new line or split them using comma</p>
 
-  <div>
-    <h3>Profile page</h3>
-    <textarea id="profileFields" cols="50" rows="15"></textarea>
-  </div>
+  <div class="h-group">
+    <div style="background-color: rgb(70, 169, 255, 0.2);">
+      <h3>Profile page</h3>
+      <textarea id="profileFields" cols="50" rows="15"></textarea>
+    </div>
 
-  <div>
-    <h3>SERP and Telehealth pages</h3>
-    <textarea id="serpFields" cols="50" rows="15"></textarea>
-  </div>
+  <div style="background-color: rgba(70, 255, 246, 0.2);">
+      <h3>SERP and Telehealth pages</h3>
+      <textarea id="serpFields" cols="50" rows="15"></textarea>
+    </div>
 
-  <div>
-    <h3>Practice page</h3>
-    <div class="h-group">
-      <div>
-        <h4>primaryLocation</h4>
-        <textarea id="primaryLocationFields" cols="50" rows="15"></textarea>
-      </div>
-      <div>
-        <h4>locations</h4>
-        <textarea id="locationsFields" cols="50" rows="15"></textarea>
+    <div style="background-color: rgba(70, 255, 126, 0.2);">
+      <h3 class="noBottomMargin">Practice page</h3>
+      <div class="h-group">
+        <div>
+          <h4 class="fileName">primaryLocation</h4>
+          <textarea id="primaryLocationFields" cols="50" rows="15"></textarea>
+        </div>
+        <div>
+          <h4 class="fileName">locations</h4>
+          <textarea id="locationsFields" cols="50" rows="15"></textarea>
+        </div>
       </div>
     </div>
   </div>
