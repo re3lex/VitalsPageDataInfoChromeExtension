@@ -8,6 +8,11 @@
   body {
     font-size: 16px;
   }
+
+  .h-group {
+    display: flex;
+    flex-direction: row;
+  }
 </style>
 
 <body>
@@ -26,7 +31,16 @@
 
   <div>
     <h3>Practice page</h3>
-    <textarea id="primaryLocationFields" cols="50" rows="15"></textarea>
+    <div class="h-group">
+      <div>
+        <h4>primaryLocation</h4>
+        <textarea id="primaryLocationFields" cols="50" rows="15"></textarea>
+      </div>
+      <div>
+        <h4>locations</h4>
+        <textarea id="locationsFields" cols="50" rows="15"></textarea>
+      </div>
+    </div>
   </div>
 
   <div id="status"></div>

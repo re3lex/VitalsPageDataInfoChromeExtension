@@ -1,1 +1,1 @@
-const fields = ['profileFields', 'serpFields', 'primaryLocationFields'];
+const fields = ['profileFields', 'serpFields', 'primaryLocationFields', 'locationsFields'];

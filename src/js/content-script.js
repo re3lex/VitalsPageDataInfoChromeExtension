@@ -39,7 +39,8 @@ const profileFields = [
 const defaultFields = {
   profileFields: profileFields,
   serpFields: profileFields,
-  primaryLocationFields: ['id'],
+  primaryLocationFields: ['id', 'name', 'profiletype_s', 'entityid_s', 'dynamic_olb_enabled_b', 'providercount_i'],
+  locationsFields: ['state', 'city'],
 }
 
 chrome.storage.sync.get(fields, (storedData) => {

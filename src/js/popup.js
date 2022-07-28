@@ -1,14 +1,21 @@
-
-
 let fieldsMap = {};
-
 chrome.storage.sync.get(fields, (data) => fieldsMap = data);
+
+
+const solrLinksGenCallbacks = {
+  profile: {
+    intid: (s) => `http://lcnas11q-con-23.portal.webmd.com:8080/solr/phydir/select?q=id%3A${s}`
+  },
+  primaryLocation:{
+    id: (s) => `http://lcnas11q-con-23.portal.webmd.com:8080/solr/facility/select?q=id%3A${s}`
+  }
+}
 
 const getInfoObj = (label, value) => ({ label, value });
 
 const renderRowSpan = (value, span = 2, cls = '') => `<tr class="${cls}"><td colspan="${span}">${value}</td></tr>`;
 
-const renderRow = ({ label, value }) => {
+const renderRow = ({ label, value }, solrLinksCbs) => {
   const id = 'copy-btn-' + Math.round(Math.random() * 10000);
   const content = [];
   content.push('<tr>');
@@ -18,13 +25,17 @@ const renderRow = ({ label, value }) => {
     content.push(`<a href="#" id="${id}" class="material-icons copy-button">content_copy</a>`);
   }
 
-  switch (label) {
+  if (solrLinksCbs && solrLinksCbs[label]) {
+    const url = solrLinksCbs[label](value);
+    content.push(`<a href="${url}" target="_blank">SOLR</a>`);
+  }
+/*   switch (label) {
     case 'intid':
       const url = `http://lcnas11q-con-23.portal.webmd.com:8080/solr/phydir/select?q=id%3A${value}`
       content.push(`<a href="${url}" target="_blank">SOLR</a>`);
 
       break;
-  }
+  } */
 
   content.push('</td>');
   content.push('</tr>');
@@ -32,9 +43,9 @@ const renderRow = ({ label, value }) => {
 };
 
 
-const getRows = (fields =[], profile) => {
-  const rows = fields.map(f=>getInfoObj(f, profile[f]));
-  return rows.map((r) => renderRow(r));
+const getRows = (fields =[], data, solrLinksCbs) => {
+  const rows = fields.map(f=>getInfoObj(f, data[f]));
+  return rows.map((r) => renderRow(r, solrLinksCbs));
 }
 
 const getContent = (state) => {
@@ -43,7 +54,7 @@ const getContent = (state) => {
   if (profile) {
     out.push('<table class="dataTable">');
     out.push(renderRowSpan(`<h4>${profile.fullname}</h4>`, 2, 'profileTitle'));
-    out.push(...getRows(fieldsMap.profileFields, profile));
+    out.push(...getRows(fieldsMap.profileFields, profile, solrLinksGenCallbacks.profile));
     out.push('</table>');
   }
   else if (featured_serp || result.serp) {
@@ -52,7 +63,7 @@ const getContent = (state) => {
       out.push('<table class="dataTable">');
       featured_serp.forEach((p, idx) => {
         out.push(renderRowSpan(`<h4>[${idx}]: ${p.fullname}</h4>`, 2, 'profileTitle'));
-        out.push(...getRows(fieldsMap.serpFields, p));
+        out.push(...getRows(fieldsMap.serpFields, p, solrLinksGenCallbacks.profile));
       });
       out.push('</table>');
     }
@@ -62,17 +73,27 @@ const getContent = (state) => {
       out.push('<table class="dataTable">');
       serp.forEach((p, idx) => {
         out.push(renderRowSpan(`<h4>[${idx}]: ${p.fullname}</h4>`, 2, 'profileTitle'));
-        out.push(...getRows(fieldsMap.serpFields, p));
+        out.push(...getRows(fieldsMap.serpFields, p, solrLinksGenCallbacks.profile));
       });
       out.push('</table>');
     }
   }
   else if (practiceData) {
-    const {primaryLocation} = practiceData;
-    out.push(`<h4>primaryLocation data</h4>`);
+    const {primaryLocation, locations=[]} = practiceData;
+    out.push(`<h4>primaryLocation</h4>`);
     out.push('<table class="dataTable">');
-    out.push(...getRows(fieldsMap.primaryLocationFields, primaryLocation));
+    out.push(...getRows(fieldsMap.primaryLocationFields, primaryLocation, solrLinksGenCallbacks.primaryLocation));
     out.push('</table>');
+
+    if (locations.length > 0) {
+      out.push(`<h4>${locations.length} Locations</h4>`);
+      out.push('<table class="dataTable">');
+      locations.forEach((l, idx) => {
+        out.push(renderRowSpan(`<h4>[${idx}]: ${l.name}</h4>`, 2, 'profileTitle'));
+        out.push(...getRows(fieldsMap.locationsFields, l));
+      });
+      out.push('</table>');
+    }
   }
 
   else {
