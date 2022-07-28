@@ -1,10 +1,8 @@
-let profileFieldsToShow = [];
-let serpFieldsToShow = [];
 
-chrome.storage.sync.get(['profileFields', 'serpFields'], ({ profileFields = [], serpFields = [] }) => {
-  profileFieldsToShow = profileFields;
-  serpFieldsToShow = serpFields;
-});
+
+let fieldsMap = {};
+
+chrome.storage.sync.get(fields, (data) => fieldsMap = data);
 
 const getInfoObj = (label, value) => ({ label, value });
 
@@ -34,28 +32,27 @@ const renderRow = ({ label, value }) => {
 };
 
 
-const getRows = (fields =[], profile, idx = 0) => {
+const getRows = (fields =[], profile) => {
   const rows = fields.map(f=>getInfoObj(f, profile[f]));
-  const result = [];
-  result.push(renderRowSpan(`<h4>[${idx}]: ${profile.fullname}</h4>`, 2, 'profileTitle'));
-  result.push(...rows.map((r) => renderRow(r)));
-  return result;
+  return rows.map((r) => renderRow(r));
 }
 
 const getContent = (state) => {
-  const { profile, featured_serp, result = {} } = state;
+  const { profile, featured_serp, result = {}, practiceData  } = state;
   const out = [];
   if (profile) {
     out.push('<table class="dataTable">');
-    out.push(...getRows(profileFieldsToShow, profile));
+    out.push(renderRowSpan(`<h4>${profile.fullname}</h4>`, 2, 'profileTitle'));
+    out.push(...getRows(fieldsMap.profileFields, profile));
     out.push('</table>');
   }
   else if (featured_serp || result.serp) {
     if (featured_serp && featured_serp.length > 0) {
-      out.push(`<h3>${featured_serp.length} Featured results</h3>`);
+      out.push(`<h4>${featured_serp.length} Featured results</h4>`);
       out.push('<table class="dataTable">');
       featured_serp.forEach((p, idx) => {
-        out.push(...getRows(serpFieldsToShow, p, idx));
+        out.push(renderRowSpan(`<h4>[${idx}]: ${p.fullname}</h4>`, 2, 'profileTitle'));
+        out.push(...getRows(fieldsMap.serpFields, p));
       });
       out.push('</table>');
     }
@@ -64,10 +61,22 @@ const getContent = (state) => {
       out.push(`<h4>${serp.length} Organic results</h4>`);
       out.push('<table class="dataTable">');
       serp.forEach((p, idx) => {
-        out.push(...getRows(serpFieldsToShow, p, idx));
+        out.push(renderRowSpan(`<h4>[${idx}]: ${p.fullname}</h4>`, 2, 'profileTitle'));
+        out.push(...getRows(fieldsMap.serpFields, p));
       });
       out.push('</table>');
     }
+  }
+  else if (practiceData) {
+    const {primaryLocation} = practiceData;
+    out.push(`<h4>primaryLocation data</h4>`);
+    out.push('<table class="dataTable">');
+    out.push(...getRows(fieldsMap.primaryLocationFields, primaryLocation));
+    out.push('</table>');
+  }
+
+  else {
+    out.push('<div>Looks like this page type is not supported <span class="material-symbols-outlined">sentiment_dissatisfied</span></div>')
   }
 
   return out.join('\n');

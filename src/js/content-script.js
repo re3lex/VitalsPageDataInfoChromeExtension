@@ -1,6 +1,6 @@
 const injectScript = () => {
   var s = document.createElement('script');
-  s.src = chrome.runtime.getURL('script.js');
+  s.src = chrome.runtime.getURL('js/script.js');
   s.onload = function () {
     this.remove();
   };
@@ -8,22 +8,22 @@ const injectScript = () => {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.greeting === "fetchData") {
-      document.addEventListener('RW759_connectExtension', (e) => {
-        //debugger;
-        const state = e.detail;
-        sendResponse(state ? JSON.stringify(state) : '');
-      }, {once: true});
+  if (request.greeting === "fetchData") {
+    document.addEventListener('RW759_connectExtension', (e) => {
+      //debugger;
+      const state = e.detail;
+      sendResponse(state ? JSON.stringify(state) : '');
+    }, { once: true });
 
-      injectScript();
-      return true;
-    }
+    injectScript();
+    return true;
   }
+}
 );
 
 
 // Add default fields into storage if needed
-const defaultFields = [
+const profileFields = [
   "intid",
   "profiletype",
   "fullname",
@@ -36,16 +36,22 @@ const defaultFields = [
   "telehealthlinkurl",
 ];
 
-chrome.storage.sync.get(['profileFields', 'serpFields'], ({ profileFields = [], serpFields = [] }) => {
-  const data = {}
-  if (profileFields.length === 0) {
-    data.profileFields = [...defaultFields];
-  }
-  if (serpFields.length === 0) {
-    data.serpFields = [...defaultFields];
-  }
+const defaultFields = {
+  profileFields: profileFields,
+  serpFields: profileFields,
+  primaryLocationFields: ['id'],
+}
 
-  if(Object.keys(data).length > 0) {
+chrome.storage.sync.get(fields, (storedData) => {
+  const data = {}
+  fields.forEach(f => {
+    const d = storedData[f];
+    if (!d || d.length === 0) {
+      data[f] = [...(defaultFields[f] || [])]
+    }
+  })
+
+  if (Object.keys(data).length > 0) {
     chrome.storage.sync.set(data, () => {
       // Update status to let user know options were saved.
       console.log('Default data saved successfully');

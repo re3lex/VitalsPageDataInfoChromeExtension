@@ -1,3 +1,4 @@
+
 const splitFields = (str) => {
   const fields = str.split('\n')
     .map(v => v.split(','))
@@ -10,13 +11,13 @@ const splitFields = (str) => {
 
 // Saves options to chrome.storage
 const saveOptions = () => {
-  const profileFieldsStr = document.getElementById('profile').value;
-  const profileFields = splitFields(profileFieldsStr);
+  const data = {};
+  fields.forEach(f=>{
+    const str = document.getElementById(f).value;
+    data[f] = splitFields(str);
+  });
 
-  const serpFieldsStr = document.getElementById('serp').value;
-  const serpFields = splitFields(serpFieldsStr);
-
-  chrome.storage.sync.set({ profileFields, serpFields }, () => {
+  chrome.storage.sync.set(data, () => {
     // Update status to let user know options were saved.
     var status = document.getElementById('status');
     status.textContent = 'Options saved.';
@@ -29,9 +30,11 @@ const saveOptions = () => {
 // Restores select box and checkbox state using the preferences
 // stored in chrome.storage.
 const restoreOptions = () => {
-  chrome.storage.sync.get(['profileFields', 'serpFields'], ({ profileFields = [], serpFields = [] }) => {
-    document.getElementById('profile').value = profileFields.join('\n');
-    document.getElementById('serp').value = serpFields.join('\n');
+  chrome.storage.sync.get(fields, (data) => {
+    fields.forEach(f=>{
+      document.getElementById(f).value = (data[f] || []).join('\n');
+    });
+    
   });
 }
 document.addEventListener('DOMContentLoaded', restoreOptions);

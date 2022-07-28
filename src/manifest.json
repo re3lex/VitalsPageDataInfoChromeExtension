@@ -14,7 +14,8 @@
       ],
       "run_at": "document_end",
       "js": [
-        "content-script.js"
+        "js/fields.js",
+        "js/content-script.js"
       ]
     }
   ],
@@ -25,7 +26,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "script.js"
+        "js/fields.js",
+        "js/script.js"
       ],
       "matches": [
         "<all_urls>"
