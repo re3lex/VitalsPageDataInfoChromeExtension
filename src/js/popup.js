@@ -17,10 +17,14 @@ const renderRowSpan = (value, span = 2, cls = '') => `<tr class="${cls}"><td col
 
 const renderRow = ({ label, value }, solrLinksCbs) => {
   const id = 'copy-btn-' + Math.round(Math.random() * 10000);
+  let str = value || '';
+  if (typeof str === 'object') {
+    str = JSON.stringify(str, null, 2);
+  }
   const content = [];
   content.push('<tr>');
   content.push(`<td>${label}</td>`);
-  content.push(`<td><span class="value" data-copy-button="${id}">${value || ''}</span>`);
+  content.push(`<td><span class="value" data-copy-button="${id}"><pre>${str}</pre></span>`);
   if (value) {
     content.push(`<a href="#" id="${id}" class="material-icons copy-button">content_copy</a>`);
   }
