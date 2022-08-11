@@ -44,6 +44,13 @@ table.dataTable tfoot .links a{
 
 table td .value {
   font-weight: 700;
+
+}
+table td .collapsible.value {
+  display: block;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
 }
 
 a.copy-button {
@@ -51,4 +58,19 @@ a.copy-button {
   color: gray;
   text-decoration: none;
   vertical-align: bottom;
+}
+
+.collapseControl {
+ cursor: pointer;
+ margin-left: -5px;
+ font-size: 20px;
+}
+
+.collapseControl:after {
+  content: '\e5cc';
+ 
+}
+
+.collapseControl.active:after {
+  content: "\e5cf";
 }

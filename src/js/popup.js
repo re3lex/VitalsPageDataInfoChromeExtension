@@ -6,7 +6,7 @@ const solrLinksGenCallbacks = {
   profile: {
     intid: (s) => `http://lcnas11q-con-23.portal.webmd.com:8080/solr/phydir/select?q=id%3A${s}`
   },
-  primaryLocation:{
+  primaryLocation: {
     id: (s) => `http://lcnas11q-con-23.portal.webmd.com:8080/solr/facility/select?q=id%3A${s}`
   }
 }
@@ -21,10 +21,17 @@ const renderRow = ({ label, value }, solrLinksCbs) => {
   if (typeof str === 'object') {
     str = JSON.stringify(str, null, 2);
   }
+  const collapse = typeof str === 'string' && (str.match(/\n/g) || []).length > 2;
+
   const content = [];
   content.push('<tr>');
   content.push(`<td>${label}</td>`);
-  content.push(`<td><span class="value" data-copy-button="${id}"><pre>${str}</pre></span>`);
+  content.push(`<td>`);
+  if (collapse) {
+    content.push('<span class="material-icons collapseControl"></span>')
+  }
+
+  content.push(`<span class="value ${collapse && 'collapsible'}" style="${collapse && 'max-height:0'}" data-copy-button="${id}"><pre>${str}</pre></span>`);
   if (value) {
     content.push(`<a href="#" id="${id}" class="material-icons copy-button">content_copy</a>`);
   }
@@ -33,13 +40,6 @@ const renderRow = ({ label, value }, solrLinksCbs) => {
     const url = solrLinksCbs[label](value);
     content.push(`<a href="${url}" target="_blank">SOLR</a>`);
   }
-/*   switch (label) {
-    case 'intid':
-      const url = `http://lcnas11q-con-23.portal.webmd.com:8080/solr/phydir/select?q=id%3A${value}`
-      content.push(`<a href="${url}" target="_blank">SOLR</a>`);
-
-      break;
-  } */
 
   content.push('</td>');
   content.push('</tr>');
@@ -47,13 +47,13 @@ const renderRow = ({ label, value }, solrLinksCbs) => {
 };
 
 
-const getRows = (fields =[], data, solrLinksCbs) => {
-  const rows = fields.map(f=>getInfoObj(f, data[f]));
+const getRows = (fields = [], data, solrLinksCbs) => {
+  const rows = fields.map(f => getInfoObj(f, data[f]));
   return rows.map((r) => renderRow(r, solrLinksCbs));
 }
 
 const getContent = (state) => {
-  const { profile, featured_serp, result = {}, practiceData  } = state;
+  const { profile, featured_serp, result = {}, practiceData } = state;
   const out = [];
   if (profile) {
     out.push('<table class="dataTable">');
@@ -83,7 +83,7 @@ const getContent = (state) => {
     }
   }
   else if (practiceData) {
-    const {primaryLocation, locations=[]} = practiceData;
+    const { primaryLocation, locations = [] } = practiceData;
     out.push(`<h4>primaryLocation</h4>`);
     out.push('<table class="dataTable">');
     out.push(...getRows(fieldsMap.primaryLocationFields, primaryLocation, solrLinksGenCallbacks.primaryLocation));
@@ -125,6 +125,23 @@ const bindCopyButtons = () => {
     .forEach(b => b.addEventListener('click', onCopyClickEventHandler))
 }
 
+const bindCollapseButtons = () => {
+  const coll = document.getElementsByClassName("collapseControl");
+  
+  for (let i = 0; i < coll.length; i++) {
+    coll[i].addEventListener("click", function () {
+      this.classList.toggle("active");
+      const expanded = this.classList.contains('active');
+      var content = this.nextElementSibling;
+      if (!expanded) {
+        content.style.maxHeight = null;
+      } else {
+        content.style.maxHeight = content.scrollHeight + "px";
+      }
+    });
+  }
+}
+
 var data = 'na'
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -134,6 +151,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (response) {
         container.innerHTML = getContent(JSON.parse(response));
         bindCopyButtons();
+        bindCollapseButtons();
       }
     });
   });
