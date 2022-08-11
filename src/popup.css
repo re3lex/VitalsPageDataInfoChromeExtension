@@ -74,3 +74,23 @@ a.copy-button {
 .collapseControl.active:after {
   content: "\e5cf";
 }
+
+/* Search controls*/
+
+.inner-container .top-bar {
+  height: 25px;
+  background-color: lightgray;
+  position: sticky;
+  top: 0;
+  width: 100%;
+  right: 0;
+  left: 0;
+}
+
+.inner-container .top-bar input {
+  width: 400px;
+}
+
+.inner-container .content {
+  margin-top: 25px;
+}

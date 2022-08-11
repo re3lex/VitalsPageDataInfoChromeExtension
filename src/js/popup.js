@@ -62,11 +62,17 @@ const getContent = (state) => {
     out.push('</table>');
   }
   else if (featured_serp || result.serp) {
+    out.push(`<div class="inner-container">`);
+    out.push(`<div class="top-bar">`);
+    out.push(`<input type="text" id="searchField" placeholder="Search provider by name. Use Enter to run search.">`);
+    out.push(`</div>`);
+    out.push(`<div class="content">`);
+    let providerIdx = 0;
     if (featured_serp && featured_serp.length > 0) {
       out.push(`<h4>${featured_serp.length} Featured results</h4>`);
       out.push('<table class="dataTable">');
       featured_serp.forEach((p, idx) => {
-        out.push(renderRowSpan(`<h4>[${idx}]: ${p.fullname}</h4>`, 2, 'profileTitle'));
+        out.push(renderRowSpan(`<h4 data-fullname="${p.fullname}" data-providerIdx="${providerIdx++}">[${idx}]: ${p.fullname}</h4>`, 2, 'profileTitle'));
         out.push(...getRows(fieldsMap.serpFields, p, solrLinksGenCallbacks.profile));
       });
       out.push('</table>');
@@ -76,11 +82,13 @@ const getContent = (state) => {
       out.push(`<h4>${serp.length} Organic results</h4>`);
       out.push('<table class="dataTable">');
       serp.forEach((p, idx) => {
-        out.push(renderRowSpan(`<h4>[${idx}]: ${p.fullname}</h4>`, 2, 'profileTitle'));
+        out.push(renderRowSpan(`<h4 data-fullname="${p.fullname}" data-providerIdx="${providerIdx++}">[${idx}]: ${p.fullname}</h4>`, 2, 'profileTitle'));
         out.push(...getRows(fieldsMap.serpFields, p, solrLinksGenCallbacks.profile));
       });
       out.push('</table>');
     }
+    out.push(`</div>`);
+    out.push(`</div>`);
   }
   else if (practiceData) {
     const { primaryLocation, locations = [] } = practiceData;
@@ -129,7 +137,7 @@ const bindCollapseButtons = () => {
   const coll = document.getElementsByClassName("collapseControl");
   
   for (let i = 0; i < coll.length; i++) {
-    coll[i].addEventListener("click", function () {
+    coll[i].addEventListener("click", function() {
       this.classList.toggle("active");
       const expanded = this.classList.contains('active');
       var content = this.nextElementSibling;
@@ -142,6 +150,54 @@ const bindCollapseButtons = () => {
   }
 }
 
+const bindSearchField = () => {
+  const searchField = document.getElementById('searchField');
+  if (!searchField) {
+    return;
+  }
+  searchField.addEventListener('keyup', function(e){
+    const val = (this.value || '').trim()
+    if (e.keyCode !== 13 || !val) {
+      return;
+    }
+    const providerId = this.currentProviderId || -1;
+    const els = document.querySelectorAll('h4[data-fullname]');
+    let found = false;
+    const re = new RegExp(val, "gi")
+    for (let i = 0; i < els.length; i++) {
+      const el = els[i];
+      const fullname = el.attributes['data-fullname'].value;
+      if (!fullname.match(re)) {
+        continue;
+      }
+      const idx = el.attributes['data-providerIdx'].value;
+
+      if (idx < providerId) {
+        continue;
+      }
+
+      if (idx >= providerId) {
+        this.currentProviderId = idx
+        const headerOffset = 35;
+        const elementPosition = el.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth",
+        });
+        found = true;
+        break;
+      }
+    }
+    
+    if (!found) {
+      this.currentProviderId = -1;
+    }
+
+  });
+}
+
 var data = 'na'
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -152,6 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
         container.innerHTML = getContent(JSON.parse(response));
         bindCopyButtons();
         bindCollapseButtons();
+        bindSearchField();
       }
     });
   });
