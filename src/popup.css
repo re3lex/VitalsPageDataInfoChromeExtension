@@ -1,11 +1,12 @@
 body {
   margin: 5px;
-  min-width:400px;
+  min-width:700px;
   font-size: 15px;
 }
 
 span.value pre {
   display: inline;
+  white-space: pre-wrap;
 }
 
 table.dataTable {
@@ -14,11 +15,20 @@ table.dataTable {
   width: 100%;
   text-align: left;
   border-collapse: collapse;
+/*   table-layout: fixed; */
 }
+
 table.dataTable td, table.dataTable th {
   border: 1px solid #AAAAAA;
   padding: 3px 2px;
+  word-wrap: break-word;         /* All browsers since IE 5.5+ */
+  overflow-wrap: break-word;     /* Renamed property in CSS3 draft spec */
 }
+
+table.dataTable td.grow, table.dataTable th.grow {
+  width: 100%;
+}
+
 table.dataTable tbody td {
   font-size: 13px;
 }

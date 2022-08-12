@@ -26,7 +26,7 @@ const renderRow = ({ label, value }, solrLinksCbs) => {
   const content = [];
   content.push('<tr>');
   content.push(`<td>${label}</td>`);
-  content.push(`<td>`);
+  content.push(`<td class="grow">`);
   if (collapse) {
     content.push('<span class="material-icons collapseControl"></span>')
   }
