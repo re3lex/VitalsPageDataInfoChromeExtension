@@ -1,111 +1,17 @@
-let fieldsMap = {};
-chrome.storage.sync.get(fields, (data) => fieldsMap = data);
-
-
-const solrLinksGenCallbacks = {
-  profile: {
-    intid: (s) => `http://lcnas11q-con-23.portal.webmd.com:8080/solr/phydir/select?q=id%3A${s}`
-  },
-  primaryLocation: {
-    id: (s) => `http://lcnas11q-con-23.portal.webmd.com:8080/solr/facility/select?q=id%3A${s}`
-  }
-}
-
-const getInfoObj = (label, value) => ({ label, value });
-
-const renderRowSpan = (value, span = 2, cls = '') => `<tr class="${cls}"><td colspan="${span}">${value}</td></tr>`;
-
-const renderRow = ({ label, value }, solrLinksCbs) => {
-  const id = 'copy-btn-' + Math.round(Math.random() * 10000);
-  let str = value || '';
-  if (typeof str === 'object') {
-    str = JSON.stringify(str, null, 2);
-  }
-  const collapse = typeof str === 'string' && (str.match(/\n/g) || []).length > 2;
-
-  const content = [];
-  content.push('<tr>');
-  content.push(`<td>${label}</td>`);
-  content.push(`<td class="grow">`);
-  if (collapse) {
-    content.push('<span class="material-icons collapseControl"></span>')
-  }
-
-  content.push(`<span class="value ${collapse && 'collapsible'}" style="${collapse && 'max-height:0'}" data-copy-button="${id}"><pre>${str}</pre></span>`);
-  if (value) {
-    content.push(`<a href="#" id="${id}" class="material-icons copy-button">content_copy</a>`);
-  }
-
-  if (solrLinksCbs && solrLinksCbs[label]) {
-    const url = solrLinksCbs[label](value);
-    content.push(`<a href="${url}" target="_blank">SOLR</a>`);
-  }
-
-  content.push('</td>');
-  content.push('</tr>');
-  return content.join('\n');
-};
-
-
-const getRows = (fields = [], data, solrLinksCbs) => {
-  const rows = fields.map(f => getInfoObj(f, data[f]));
-  return rows.map((r) => renderRow(r, solrLinksCbs));
-}
-
 const getContent = (state) => {
   const { profile, featured_serp, result = {}, practiceData } = state;
   const out = [];
   if (profile) {
-    out.push('<table class="dataTable">');
-    out.push(renderRowSpan(`<h4>${profile.fullname}</h4>`, 2, 'profileTitle'));
-    out.push(...getRows(fieldsMap.profileFields, profile, solrLinksGenCallbacks.profile));
-    out.push('</table>');
+    const render = new ProfileRenderer(profile);
+    out.push(render.render());
   }
   else if (featured_serp || result.serp) {
-    out.push(`<div class="inner-container">`);
-    out.push(`<div class="top-bar">`);
-    out.push(`<input type="text" id="searchField" placeholder="Search provider by name. Use Enter to run search.">`);
-    out.push(`</div>`);
-    out.push(`<div class="content">`);
-    let providerIdx = 0;
-    if (featured_serp && featured_serp.length > 0) {
-      out.push(`<h4>${featured_serp.length} Featured results</h4>`);
-      out.push('<table class="dataTable">');
-      featured_serp.forEach((p, idx) => {
-        out.push(renderRowSpan(`<h4 data-fullname="${p.fullname}" data-providerIdx="${providerIdx++}">[${idx}]: ${p.fullname}</h4>`, 2, 'profileTitle'));
-        out.push(...getRows(fieldsMap.serpFields, p, solrLinksGenCallbacks.profile));
-      });
-      out.push('</table>');
-    }
-    const { serp = [] } = result;
-    if (serp.length > 0) {
-      out.push(`<h4>${serp.length} Organic results</h4>`);
-      out.push('<table class="dataTable">');
-      serp.forEach((p, idx) => {
-        out.push(renderRowSpan(`<h4 data-fullname="${p.fullname}" data-providerIdx="${providerIdx++}">[${idx}]: ${p.fullname}</h4>`, 2, 'profileTitle'));
-        out.push(...getRows(fieldsMap.serpFields, p, solrLinksGenCallbacks.profile));
-      });
-      out.push('</table>');
-    }
-    out.push(`</div>`);
-    out.push(`</div>`);
+    const render = new SERPDataRender(featured_serp, result.serp);
+    out.push(render.render());
   }
   else if (practiceData) {
-    const { primaryLocation, locations = [] } = practiceData;
-    out.push(`<h4>primaryLocation</h4>`);
-    out.push('<table class="dataTable">');
-    out.push(...getRows(fieldsMap.primaryLocationFields, primaryLocation, solrLinksGenCallbacks.primaryLocation));
-    out.push('</table>');
-
-    if (locations.length > 0) {
-      out.push(`<h4>${locations.length} Locations</h4>`);
-      out.push('<table class="dataTable">');
-      locations.forEach((l, idx) => {
-        out.push(renderRowSpan(`<h4>[${idx}]: ${l.name}</h4>`, 2, 'profileTitle'));
-        out.push(...getRows(fieldsMap.locationsFields, l));
-      });
-      out.push('</table>');
-    }
+    const render = new PracticeDataRenderer(practiceData);
+    out.push(render.render());
   }
 
   else {
@@ -116,7 +22,7 @@ const getContent = (state) => {
 }
 
 
-const onCopyClickEventHandler = (e) => {
+const onCopyValueClickEventHandler = (e) => {
   const { id } = e.target;
   const text = document.querySelector(`[data-copy-button=${id}]`).textContent;
   navigator.clipboard.writeText(text).then(() => {
@@ -128,9 +34,23 @@ const onCopyClickEventHandler = (e) => {
   });
 }
 
+const onCopyDataClickEventHandler = (e) => {
+  const data = JSON.parse(e.target.attributes['data-data'].value);
+  navigator.clipboard.writeText(JSON.stringify(data,'', 2)).then(() => {
+    //clipboard successfully set
+    console.log('success');
+  }, () => {
+    //clipboard write failed, use fallback
+    console.log('fail');
+  });
+}
+
 const bindCopyButtons = () => {
-  Array.from(document.querySelectorAll('a.copy-button'))
-    .forEach(b => b.addEventListener('click', onCopyClickEventHandler))
+  Array.from(document.querySelectorAll('a.copy-button:not(.whole-data)'))
+    .forEach(b => b.addEventListener('click', onCopyValueClickEventHandler))
+
+  Array.from(document.querySelectorAll('a.copy-button.whole-data'))
+    .forEach(b => b.addEventListener('click', onCopyDataClickEventHandler))
 }
 
 const bindCollapseButtons = () => {
@@ -172,7 +92,7 @@ const bindSearchField = () => {
       }
       const idx = el.attributes['data-providerIdx'].value;
 
-      if (idx < providerId) {
+      if (idx <= providerId) {
         continue;
       }
 

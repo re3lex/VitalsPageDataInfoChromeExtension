@@ -35,7 +35,7 @@ table.dataTable tbody td {
 table.dataTable tr:nth-child(even) {
   background: #D0E4F5;
 }
-table.dataTable tr.profileTitle {
+table.dataTable tr.title {
   background: greenyellow;
 }
 table.dataTable tfoot td {
