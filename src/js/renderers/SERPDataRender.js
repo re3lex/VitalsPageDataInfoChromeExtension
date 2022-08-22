@@ -10,6 +10,10 @@ class SERPProfileRenderer extends ProfileRenderer {
     return [`data-fullname="${this.data.fullname}"`, `data-providerIdx="${this.throughIndex}"`]
   }
 
+  getFieldsCollectionName(){
+    return 'serpFields';
+  }
+
   getTitle() {
     const title = super.getTitle();
     return `[${this.collectionIndex}]: ${title}`;
